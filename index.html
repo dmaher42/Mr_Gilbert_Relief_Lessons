@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Gilbert's Epic Relief Day!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .countdown-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .countdown-title {
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 3px 3px 0 #ff6b6b, 6px 6px 0 #4ecdc4;
+            margin-bottom: 2rem;
+            animation: bounce 1s infinite alternate;
+        }
+        
+        .countdown-number {
+            font-size: 10rem;
+            color: #fff;
+            text-shadow: 5px 5px 0 #ff6b6b, 10px 10px 0 #4ecdc4;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-20px); }
+        }
+        
+        .content-container {
+            display: none;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: slideDown 1s ease-out;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 3px 3px 0 #ff6b6b, 6px 6px 0 #4ecdc4;
+            margin-bottom: 1rem;
+        }
+        
+        .header p {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        
+        .mission-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: rotate(-1deg);
+            transition: transform 0.3s ease;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .mission-card:hover {
+            transform: rotate(0) scale(1.03);
+        }
+        
+        .mission-card:nth-child(even) {
+            transform: rotate(1deg);
+            background: rgba(255, 255, 255, 0.85);
+        }
+        
+        .mission-card:nth-child(even):hover {
+            transform: rotate(0) scale(1.03);
+        }
+        
+        .mission-title {
+            font-size: 2rem;
+            color: #764ba2;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .mission-title span {
+            margin-right: 0.5rem;
+            font-size: 2.5rem;
+        }
+        
+        .mission-content {
+            font-size: 1.2rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .roll-call-hint {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+            to { box-shadow: 0 4px 20px rgba(255, 107, 107, 0.5); }
+        }
+        
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: firework 1.5s ease-out forwards;
+        }
+        
+        @keyframes firework {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y));
+                opacity: 0;
+            }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            animation: confetti-fall 3s linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: white;
+            font-size: 1.2rem;
+            animation: pulse 2s infinite alternate;
+        }
+        
+        .emoji-rain {
+            position: fixed;
+            top: -50px;
+            font-size: 2rem;
+            animation: fall linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(calc(100vh + 50px));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="countdown-container" id="countdown">
+        <h1 class="countdown-title">Are you ready Mr Gilbert?</h1>
+        <div class="countdown-number" id="countdownNumber">5</div>
+    </div>
+    
+    <div class="content-container" id="content">
+        <div class="header">
+            <h1>🎉 Mr. Gilbert's Epic Relief Teacher Mission! 🎉</h1>
+            <p>Get ready for an amazing day with Year 7!</p>
+        </div>
+        
+        <div class="mission-card">
+            <h2 class="mission-title"><span>🚀</span> Mission #1: Greet the Class</h2>
+            <div class="mission-content">
+                <p>Welcome your awesome Year 7 class with your most enthusiastic "Hello, superstars!" They're excited to see you today!</p>
+            </div>
+        </div>
+        
+        <div class="mission-card">
+            <h2 class="mission-title"><span>📝</span> Mission #2: Roll Call with Style</h2>
+            <div class="mission-content">
+                <p>Take the roll by saying hello to each student by name. Make it fun with a high-five, fist bump, or silly wave!</p>
+                <div class="roll-call-hint">
+                    🌟 Pro Tip: Use your class roll list to check off each student as you greet them personally! 🌟
+                </div>
+            </div>
+        </div>
+        
+        <div class="mission-card">
+            <h2 class="mission-title"><span>🤝</span> Mission #3: Coordinate with Mr. Bruce</h2>
+            <div class="mission-content">
+                <p>Pop next door to chat with Mr. Bruce about the volleyball lesson. Use your secret teacher handshake if you have one!</p>
+            </div>
+        </div>
+        
+        <div class="mission-card">
+            <h2 class="mission-title"><span>🏐</span> Mission #4: Gymnasium Adventure!</h2>
+            <div class="mission-content">
+                <p>Lead your class to the gym where they'll join other Year 7 classes for an EPIC volleyball tournament! May the best team win!</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Have an absolutely fantastic day, Mr. Gilbert! You're going to be amazing! 🌟</p>
+        </div>
+    </div>
+    
+    <script>
+        // Countdown timer
+        let count = 5;
+        const countdownEl = document.getElementById('countdownNumber');
+        const countdownContainer = document.getElementById('countdown');
+        const contentContainer = document.getElementById('content');
+        
+        const countdownInterval = setInterval(() => {
+            count--;
+            countdownEl.textContent = count;
+            
+            if (count === 0) {
+                clearInterval(countdownInterval);
+                countdownContainer.style.display = 'none';
+                contentContainer.style.display = 'block';
+                createFireworks();
+                createConfetti();
+                createEmojiRain();
+            }
+        }, 1000);
+        
+        // Create fireworks effect
+        function createFireworks() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6ab04c', '#130f40'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.classList.add('firework');
+                    
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    
+                    firework.style.left = `${x}px`;
+                    firework.style.top = `${y}px`;
+                    firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = 50 + Math.random() * 100;
+                    
+                    firework.style.setProperty('--x', `${Math.cos(angle) * velocity}px`);
+                    firework.style.setProperty('--y', `${Math.sin(angle) * velocity}px`);
+                    
+                    document.body.appendChild(firework);
+                    
+                    setTimeout(() => {
+                        firework.remove();
+                    }, 1500);
+                }, i * 50);
+            }
+        }
+        
+        // Create confetti effect
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6ab04c', '#130f40'];
+            
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = `${2 + Math.random() * 3}s`;
+                    confetti.style.opacity = Math.random();
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }, i * 30);
+            }
+        }
+        
+        // Create emoji rain
+        function createEmojiRain() {
+            const emojis = ['🎉', '🎊', '🌟', '✨', '🎈', '🎁', '🏀', '🏐', '🏆', '🥇'];
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const emoji = document.createElement('div');
+                    emoji.classList.add('emoji-rain');
+                    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    emoji.style.left = `${Math.random() * 100}%`;
+                    emoji.style.animationDuration = `${5 + Math.random() * 5}s`;
+                    emoji.style.opacity = Math.random();
+                    
+                    document.body.appendChild(emoji);
+                    
+                    setTimeout(() => {
+                        emoji.remove();
+                    }, 10000);
+                }, i * 200);
+            }
+        }
+    </script>
+</body>
+</html>
