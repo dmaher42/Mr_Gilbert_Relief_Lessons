@@ -221,9 +221,35 @@
                 transform: translateY(calc(100vh + 50px));
             }
         }
+        
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        .sound-toggle:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
+    <button class="sound-toggle" id="soundToggle" title="Toggle Sound">🔊</button>
+    
     <div class="countdown-container" id="countdown">
         <h1 class="countdown-title">Are you ready Mr Gilbert?</h1>
         <div class="countdown-number" id="countdownNumber">5</div>
@@ -272,6 +298,98 @@
     </div>
     
     <script>
+        // Audio Context for sound effects
+        let audioContext;
+        let soundEnabled = true;
+        
+        // Initialize audio context on first user interaction
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        // Create countdown tick sound
+        function playCountdownSound(pitch = 400) {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = pitch;
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+        
+        // Create celebration sound
+        function playCelebrationSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C (higher)
+            
+            notes.forEach((frequency, index) => {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                }, index * 100);
+            });
+            
+            // Add explosion sound
+            const noise = audioContext.createBufferSource();
+            const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.2, audioContext.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            
+            for (let i = 0; i < noiseBuffer.length; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            noise.buffer = noiseBuffer;
+            
+            const noiseGain = audioContext.createGain();
+            noise.connect(noiseGain);
+            noiseGain.connect(audioContext.destination);
+            
+            noiseGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            noise.start(audioContext.currentTime);
+        }
+        
+        // Sound toggle functionality
+        document.getElementById('soundToggle').addEventListener('click', function() {
+            initAudio();
+            soundEnabled = !soundEnabled;
+            this.textContent = soundEnabled ? '🔊' : '🔇';
+            
+            // Play a test sound when enabling
+            if (soundEnabled) {
+                playCountdownSound(600);
+            }
+        });
+        
+        // Initialize audio on first click
+        document.addEventListener('click', initAudio, { once: true });
+        
         // Countdown timer
         let count = 5;
         const countdownEl = document.getElementById('countdownNumber');
@@ -282,6 +400,10 @@
             count--;
             countdownEl.textContent = count;
             
+            // Play countdown sound with increasing pitch
+            const pitch = 300 + (5 - count) * 100;
+            playCountdownSound(pitch);
+            
             if (count === 0) {
                 clearInterval(countdownInterval);
                 countdownContainer.style.display = 'none';
@@ -289,6 +411,7 @@
                 createFireworks();
                 createConfetti();
                 createEmojiRain();
+                playCelebrationSound();
             }
         }, 1000);
         
