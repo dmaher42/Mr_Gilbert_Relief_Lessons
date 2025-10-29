@@ -245,10 +245,57 @@
         .sound-toggle:active {
             transform: scale(0.95);
         }
+        
+        .audio-prompt {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        
+        .audio-prompt h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .audio-prompt p {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .audio-prompt button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .audio-prompt button:hover {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <button class="sound-toggle" id="soundToggle" title="Toggle Sound">🔊</button>
+    
+    <div class="audio-prompt" id="audioPrompt">
+        <h2>🎵 Enable Sound Effects</h2>
+        <p>Click below to activate the awesome sound effects for Mr. Gilbert's epic day!</p>
+        <button onclick="enableAudio()">Let's Go! 🚀</button>
+    </div>
     
     <div class="countdown-container" id="countdown">
         <h1 class="countdown-title">Are you ready Mr Gilbert?</h1>
@@ -301,17 +348,48 @@
         // Audio Context for sound effects
         let audioContext;
         let soundEnabled = true;
+        let audioInitialized = false;
+        let countdownStarted = false;
         
-        // Initialize audio context on first user interaction
-        function initAudio() {
-            if (!audioContext) {
+        // Try to initialize audio immediately
+        function tryInitAudio() {
+            if (!audioInitialized) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    // Check if context is running
+                    if (audioContext.state === 'running') {
+                        audioInitialized = true;
+                        console.log('Audio initialized successfully');
+                    } else if (audioContext.state === 'suspended') {
+                        // Show prompt to enable audio
+                        document.getElementById('audioPrompt').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.log('Audio initialization failed:', e);
+                }
+            }
+        }
+        
+        // Enable audio function
+        function enableAudio() {
+            if (!audioInitialized) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioContext.resume().then(() => {
+                    audioInitialized = true;
+                    document.getElementById('audioPrompt').style.display = 'none';
+                    // Play a test sound
+                    playCountdownSound(600);
+                    // Start countdown if not already started
+                    if (!countdownStarted) {
+                        startCountdown();
+                    }
+                });
             }
         }
         
         // Create countdown tick sound
         function playCountdownSound(pitch = 400) {
-            if (!soundEnabled || !audioContext) return;
+            if (!soundEnabled || !audioInitialized || !audioContext) return;
             
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -331,7 +409,7 @@
         
         // Create celebration sound
         function playCelebrationSound() {
-            if (!soundEnabled || !audioContext) return;
+            if (!soundEnabled || !audioInitialized || !audioContext) return;
             
             const notes = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C (higher)
             
@@ -377,43 +455,62 @@
         
         // Sound toggle functionality
         document.getElementById('soundToggle').addEventListener('click', function() {
-            initAudio();
-            soundEnabled = !soundEnabled;
-            this.textContent = soundEnabled ? '🔊' : '🔇';
-            
-            // Play a test sound when enabling
-            if (soundEnabled) {
-                playCountdownSound(600);
+            if (!audioInitialized) {
+                enableAudio();
+            } else {
+                soundEnabled = !soundEnabled;
+                this.textContent = soundEnabled ? '🔊' : '🔇';
+                
+                // Play a test sound when enabling
+                if (soundEnabled) {
+                    playCountdownSound(600);
+                }
             }
         });
         
-        // Initialize audio on first click
-        document.addEventListener('click', initAudio, { once: true });
-        
-        // Countdown timer
-        let count = 5;
-        const countdownEl = document.getElementById('countdownNumber');
-        const countdownContainer = document.getElementById('countdown');
-        const contentContainer = document.getElementById('content');
-        
-        const countdownInterval = setInterval(() => {
-            count--;
-            countdownEl.textContent = count;
+        // Start countdown function
+        function startCountdown() {
+            countdownStarted = true;
+            let count = 5;
+            const countdownEl = document.getElementById('countdownNumber');
+            const countdownContainer = document.getElementById('countdown');
+            const contentContainer = document.getElementById('content');
             
-            // Play countdown sound with increasing pitch
-            const pitch = 300 + (5 - count) * 100;
-            playCountdownSound(pitch);
-            
-            if (count === 0) {
-                clearInterval(countdownInterval);
-                countdownContainer.style.display = 'none';
-                contentContainer.style.display = 'block';
-                createFireworks();
-                createConfetti();
-                createEmojiRain();
-                playCelebrationSound();
+            const countdownInterval = setInterval(() => {
+                count--;
+                countdownEl.textContent = count;
+                
+                // Play countdown sound with increasing pitch
+                const pitch = 300 + (5 - count) * 100;
+                playCountdownSound(pitch);
+                
+                if (count === 0) {
+                    clearInterval(countdownInterval);
+                    countdownContainer.style.display = 'none';
+                    contentContainer.style.display = 'block';
+                    createFireworks();
+                    createConfetti();
+                    createEmojiRain();
+                    playCelebrationSound();
+                }
+            }, 1000);
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            tryInitAudio();
+            // Start countdown immediately if audio is ready, otherwise wait for user interaction
+            if (audioInitialized) {
+                startCountdown();
             }
-        }, 1000);
+        });
+        
+        // Also try to initialize on any user interaction
+        document.addEventListener('click', () => {
+            if (!audioInitialized) {
+                enableAudio();
+            }
+        }, { once: true });
         
         // Create fireworks effect
         function createFireworks() {
